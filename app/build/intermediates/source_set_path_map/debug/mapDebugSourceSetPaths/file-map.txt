@@ -1,0 +1,72 @@
+com.dataset.acquisition.app-appcompat-1.6.1-0 C:\Users\User\.gradle\caches\8.11.1\transforms\019613a0a850c0aadc2df1030bad50a5\transformed\appcompat-1.6.1\res
+com.dataset.acquisition.app-navigation-common-ktx-2.8.4-1 C:\Users\User\.gradle\caches\8.11.1\transforms\028219cb58d1a77336546d28943e623f\transformed\navigation-common-ktx-2.8.4\res
+com.dataset.acquisition.app-core-ktx-1.15.0-2 C:\Users\User\.gradle\caches\8.11.1\transforms\0397a72b6fd1aee50981b88c4e4ecd1d\transformed\core-ktx-1.15.0\res
+com.dataset.acquisition.app-startup-runtime-1.1.1-3 C:\Users\User\.gradle\caches\8.11.1\transforms\03a10052cdc7139c1ff78f02f548083e\transformed\startup-runtime-1.1.1\res
+com.dataset.acquisition.app-emoji2-1.3.0-4 C:\Users\User\.gradle\caches\8.11.1\transforms\08d871023c39aa148095c8e4f6be7362\transformed\emoji2-1.3.0\res
+com.dataset.acquisition.app-lifecycle-livedata-2.8.7-5 C:\Users\User\.gradle\caches\8.11.1\transforms\0de4add9057d3de4892a481b1782bf33\transformed\lifecycle-livedata-2.8.7\res
+com.dataset.acquisition.app-tracing-1.2.0-6 C:\Users\User\.gradle\caches\8.11.1\transforms\12552fe12a4e5446880dcace6ac5be10\transformed\tracing-1.2.0\res
+com.dataset.acquisition.app-material-icons-extended-release-7 C:\Users\User\.gradle\caches\8.11.1\transforms\16d63f4258ca5fa46791fd792a08fe65\transformed\material-icons-extended-release\res
+com.dataset.acquisition.app-savedstate-1.2.1-8 C:\Users\User\.gradle\caches\8.11.1\transforms\1dea18eef9fe17c0c888affc5238e430\transformed\savedstate-1.2.1\res
+com.dataset.acquisition.app-savedstate-ktx-1.2.1-9 C:\Users\User\.gradle\caches\8.11.1\transforms\2bb2b56a12c4ae8dffeab3824746d339\transformed\savedstate-ktx-1.2.1\res
+com.dataset.acquisition.app-navigation-runtime-ktx-2.8.4-10 C:\Users\User\.gradle\caches\8.11.1\transforms\2c7ffbac5472059b8f8d1dc443b04f47\transformed\navigation-runtime-ktx-2.8.4\res
+com.dataset.acquisition.app-lifecycle-viewmodel-savedstate-2.8.7-11 C:\Users\User\.gradle\caches\8.11.1\transforms\2d4a593df96c9300eeb790256fa4a2f0\transformed\lifecycle-viewmodel-savedstate-2.8.7\res
+com.dataset.acquisition.app-ui-util-release-12 C:\Users\User\.gradle\caches\8.11.1\transforms\37965cb1fe44ab9d055f4bae55496fb1\transformed\ui-util-release\res
+com.dataset.acquisition.app-appcompat-resources-1.6.1-13 C:\Users\User\.gradle\caches\8.11.1\transforms\3806ddb7902a5a9b45561a1eea7df760\transformed\appcompat-resources-1.6.1\res
+com.dataset.acquisition.app-foundation-release-14 C:\Users\User\.gradle\caches\8.11.1\transforms\3926a5566e639a618f6cded4db1e5d1a\transformed\foundation-release\res
+com.dataset.acquisition.app-ui-unit-release-15 C:\Users\User\.gradle\caches\8.11.1\transforms\43c70114cc4d9d7922549a02a0a6b0bc\transformed\ui-unit-release\res
+com.dataset.acquisition.app-ui-text-release-16 C:\Users\User\.gradle\caches\8.11.1\transforms\4e807de3fe260684c8b3c2406153f8f2\transformed\ui-text-release\res
+com.dataset.acquisition.app-material-ripple-release-17 C:\Users\User\.gradle\caches\8.11.1\transforms\50262dd28b5d9a3b17b701eb99a70e3e\transformed\material-ripple-release\res
+com.dataset.acquisition.app-activity-1.9.3-18 C:\Users\User\.gradle\caches\8.11.1\transforms\505ff53e083c11ac2808088929bf0e5c\transformed\activity-1.9.3\res
+com.dataset.acquisition.app-lifecycle-viewmodel-ktx-2.8.7-19 C:\Users\User\.gradle\caches\8.11.1\transforms\5227d2f929fc10c0533fda701a78ab30\transformed\lifecycle-viewmodel-ktx-2.8.7\res
+com.dataset.acquisition.app-animation-release-20 C:\Users\User\.gradle\caches\8.11.1\transforms\52bca4918bf51e32efbf51c682b6fb47\transformed\animation-release\res
+com.dataset.acquisition.app-lifecycle-livedata-core-2.8.7-21 C:\Users\User\.gradle\caches\8.11.1\transforms\568a6fd156b65adc6e634f85877b5c6a\transformed\lifecycle-livedata-core-2.8.7\res
+com.dataset.acquisition.app-camera-video-1.4.1-22 C:\Users\User\.gradle\caches\8.11.1\transforms\5711075800620a4ea50b69e104aa092f\transformed\camera-video-1.4.1\res
+com.dataset.acquisition.app-material3-release-23 C:\Users\User\.gradle\caches\8.11.1\transforms\5d80b4e59fe3ac937f3af02c4d043813\transformed\material3-release\res
+com.dataset.acquisition.app-camera-view-1.4.1-24 C:\Users\User\.gradle\caches\8.11.1\transforms\5eda3e7a10914bcc2dc5ec5655fa8529\transformed\camera-view-1.4.1\res
+com.dataset.acquisition.app-foundation-layout-release-25 C:\Users\User\.gradle\caches\8.11.1\transforms\6ebcd4c237fe0dc1cc794248482ffcde\transformed\foundation-layout-release\res
+com.dataset.acquisition.app-play-services-basement-18.4.0-26 C:\Users\User\.gradle\caches\8.11.1\transforms\77fd4ea099fa9cdb94fbc6862ec16588\transformed\play-services-basement-18.4.0\res
+com.dataset.acquisition.app-camera-camera2-1.4.1-27 C:\Users\User\.gradle\caches\8.11.1\transforms\7a4f483e20b66f40fb51a7975a9eae0e\transformed\camera-camera2-1.4.1\res
+com.dataset.acquisition.app-ui-tooling-release-28 C:\Users\User\.gradle\caches\8.11.1\transforms\7f255d17b55c457e4913e91cb310c840\transformed\ui-tooling-release\res
+com.dataset.acquisition.app-profileinstaller-1.3.1-29 C:\Users\User\.gradle\caches\8.11.1\transforms\8585039906dc01456ae6becbe6370228\transformed\profileinstaller-1.3.1\res
+com.dataset.acquisition.app-ui-release-30 C:\Users\User\.gradle\caches\8.11.1\transforms\887a261af85fe4ecaf5b95c0a2bb7f14\transformed\ui-release\res
+com.dataset.acquisition.app-lifecycle-service-2.8.7-31 C:\Users\User\.gradle\caches\8.11.1\transforms\89ca417c26f07ed84068f8495815efc2\transformed\lifecycle-service-2.8.7\res
+com.dataset.acquisition.app-core-1.15.0-32 C:\Users\User\.gradle\caches\8.11.1\transforms\90fb8275e3b723f106d195d062a618c7\transformed\core-1.15.0\res
+com.dataset.acquisition.app-tracing-ktx-1.2.0-33 C:\Users\User\.gradle\caches\8.11.1\transforms\912b8a64f44e3d22e41ac9254c69cbcd\transformed\tracing-ktx-1.2.0\res
+com.dataset.acquisition.app-fragment-1.3.6-34 C:\Users\User\.gradle\caches\8.11.1\transforms\97e1656ef02fdd3307f660fd5df045b8\transformed\fragment-1.3.6\res
+com.dataset.acquisition.app-activity-compose-1.9.3-35 C:\Users\User\.gradle\caches\8.11.1\transforms\98b2aa7c80f18341ce83dd1b478fc475\transformed\activity-compose-1.9.3\res
+com.dataset.acquisition.app-lifecycle-runtime-ktx-release-36 C:\Users\User\.gradle\caches\8.11.1\transforms\9bb6ec15c7f832836eb575aa58dfa84f\transformed\lifecycle-runtime-ktx-release\res
+com.dataset.acquisition.app-activity-ktx-1.9.3-37 C:\Users\User\.gradle\caches\8.11.1\transforms\a0bfb2d215f84739a8f49c4de0260ec9\transformed\activity-ktx-1.9.3\res
+com.dataset.acquisition.app-navigation-common-2.8.4-38 C:\Users\User\.gradle\caches\8.11.1\transforms\a9d222a3e58a750fd779a8d77dfe7a44\transformed\navigation-common-2.8.4\res
+com.dataset.acquisition.app-camera-lifecycle-1.4.1-39 C:\Users\User\.gradle\caches\8.11.1\transforms\ab891376eb4a0353984bed752b653093\transformed\camera-lifecycle-1.4.1\res
+com.dataset.acquisition.app-ui-tooling-preview-release-40 C:\Users\User\.gradle\caches\8.11.1\transforms\b30e1085fb440956edf8d513f2eae072\transformed\ui-tooling-preview-release\res
+com.dataset.acquisition.app-runtime-saveable-release-41 C:\Users\User\.gradle\caches\8.11.1\transforms\b38d903430fd178fe8fc555798794274\transformed\runtime-saveable-release\res
+com.dataset.acquisition.app-navigation-compose-2.8.4-42 C:\Users\User\.gradle\caches\8.11.1\transforms\b47b3eb59a81f49306cf90b087cfef01\transformed\navigation-compose-2.8.4\res
+com.dataset.acquisition.app-lifecycle-runtime-release-43 C:\Users\User\.gradle\caches\8.11.1\transforms\b5732ccbd32fc1f9b26a6c5e65033971\transformed\lifecycle-runtime-release\res
+com.dataset.acquisition.app-material-release-44 C:\Users\User\.gradle\caches\8.11.1\transforms\b8d29692fecffb5c42e8c5529e847521\transformed\material-release\res
+com.dataset.acquisition.app-lifecycle-viewmodel-release-45 C:\Users\User\.gradle\caches\8.11.1\transforms\bbe6278ea453351918a2c43f439e24dc\transformed\lifecycle-viewmodel-release\res
+com.dataset.acquisition.app-camera-core-1.4.1-46 C:\Users\User\.gradle\caches\8.11.1\transforms\bd00107fe37e7931e1e004bbfc7b8a82\transformed\camera-core-1.4.1\res
+com.dataset.acquisition.app-ui-geometry-release-47 C:\Users\User\.gradle\caches\8.11.1\transforms\bd69fb5a707287534b75105aedf355bf\transformed\ui-geometry-release\res
+com.dataset.acquisition.app-lifecycle-viewmodel-compose-release-48 C:\Users\User\.gradle\caches\8.11.1\transforms\cb3d762e2017157c29c287657d4fb467\transformed\lifecycle-viewmodel-compose-release\res
+com.dataset.acquisition.app-graphics-path-1.0.1-49 C:\Users\User\.gradle\caches\8.11.1\transforms\cbe27724801ff2f0310819ed3add58f4\transformed\graphics-path-1.0.1\res
+com.dataset.acquisition.app-material-icons-core-release-50 C:\Users\User\.gradle\caches\8.11.1\transforms\d2ae33c9dfe81b2496adc2de71daf39c\transformed\material-icons-core-release\res
+com.dataset.acquisition.app-lifecycle-process-2.8.7-51 C:\Users\User\.gradle\caches\8.11.1\transforms\d45460d861c498d52b5b8014d0f66c0d\transformed\lifecycle-process-2.8.7\res
+com.dataset.acquisition.app-coil-base-2.7.0-52 C:\Users\User\.gradle\caches\8.11.1\transforms\da338f10dd1ee3fffea1cc6bd313323a\transformed\coil-base-2.7.0\res
+com.dataset.acquisition.app-core-runtime-2.2.0-53 C:\Users\User\.gradle\caches\8.11.1\transforms\dacaf777c2e1728556e07b105a1140e7\transformed\core-runtime-2.2.0\res
+com.dataset.acquisition.app-annotation-experimental-1.4.1-54 C:\Users\User\.gradle\caches\8.11.1\transforms\db3ad75d4fe90b21de36e5c145157876\transformed\annotation-experimental-1.4.1\res
+com.dataset.acquisition.app-animation-core-release-55 C:\Users\User\.gradle\caches\8.11.1\transforms\e16f5e8fafb58501caf4f6486a7a2136\transformed\animation-core-release\res
+com.dataset.acquisition.app-customview-poolingcontainer-1.0.0-56 C:\Users\User\.gradle\caches\8.11.1\transforms\e29ede0b42a5355e02a2fa2e4174c4bc\transformed\customview-poolingcontainer-1.0.0\res
+com.dataset.acquisition.app-play-services-base-18.5.0-57 C:\Users\User\.gradle\caches\8.11.1\transforms\e5a50592b6b23c133aabca71aa558026\transformed\play-services-base-18.5.0\res
+com.dataset.acquisition.app-ui-graphics-release-58 C:\Users\User\.gradle\caches\8.11.1\transforms\e6e07e81b3f0da69bc534970a2898023\transformed\ui-graphics-release\res
+com.dataset.acquisition.app-lifecycle-livedata-core-ktx-2.8.7-59 C:\Users\User\.gradle\caches\8.11.1\transforms\e9124a51d17c66383ef45b4b78f9e15f\transformed\lifecycle-livedata-core-ktx-2.8.7\res
+com.dataset.acquisition.app-runtime-release-60 C:\Users\User\.gradle\caches\8.11.1\transforms\eda63b15fe24ed5c5996ffc83147982b\transformed\runtime-release\res
+com.dataset.acquisition.app-emoji2-views-helper-1.3.0-61 C:\Users\User\.gradle\caches\8.11.1\transforms\f337be609cd3bc66da3c0c5f2bbebfc7\transformed\emoji2-views-helper-1.3.0\res
+com.dataset.acquisition.app-lifecycle-runtime-compose-release-62 C:\Users\User\.gradle\caches\8.11.1\transforms\f35763868866dbe384907ba0727f9a58\transformed\lifecycle-runtime-compose-release\res
+com.dataset.acquisition.app-navigation-runtime-2.8.4-63 C:\Users\User\.gradle\caches\8.11.1\transforms\f604090ecfa0acfb93dbbefd060dd975\transformed\navigation-runtime-2.8.4\res
+com.dataset.acquisition.app-ui-tooling-data-release-64 C:\Users\User\.gradle\caches\8.11.1\transforms\feea69c2dec4121487a8a21f855beb96\transformed\ui-tooling-data-release\res
+com.dataset.acquisition.app-pngs-65 C:\Users\User\Downloads\Semester 8\TA\app\build\generated\res\pngs\debug
+com.dataset.acquisition.app-resValues-66 C:\Users\User\Downloads\Semester 8\TA\app\build\generated\res\resValues\debug
+com.dataset.acquisition.app-packageDebugResources-67 C:\Users\User\Downloads\Semester 8\TA\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.dataset.acquisition.app-packageDebugResources-68 C:\Users\User\Downloads\Semester 8\TA\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.dataset.acquisition.app-debug-69 C:\Users\User\Downloads\Semester 8\TA\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.dataset.acquisition.app-debug-70 C:\Users\User\Downloads\Semester 8\TA\app\src\debug\res
+com.dataset.acquisition.app-main-71 C:\Users\User\Downloads\Semester 8\TA\app\src\main\res

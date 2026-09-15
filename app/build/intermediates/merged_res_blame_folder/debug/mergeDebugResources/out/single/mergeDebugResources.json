@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.dataset.acquisition.app-debug-69:/xml_file_paths.xml.flat",
+        "source": "com.dataset.acquisition.app-main-71:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.dataset.acquisition.app-debug-69:/xml_backup_rules.xml.flat",
+        "source": "com.dataset.acquisition.app-main-71:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.dataset.acquisition.app-debug-69:/xml_data_extraction_rules.xml.flat",
+        "source": "com.dataset.acquisition.app-main-71:/xml/data_extraction_rules.xml"
+    }
+]

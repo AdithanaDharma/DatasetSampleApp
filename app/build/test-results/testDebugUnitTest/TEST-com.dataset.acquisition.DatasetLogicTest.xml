@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dataset.acquisition.DatasetLogicTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-15T04:07:48" hostname="ADITHANA" time="0.196">
+  <properties/>
+  <testcase name="testTargetRoiAlignmentLogic" classname="com.dataset.acquisition.DatasetLogicTest" time="0.013"/>
+  <testcase name="testFileNameGeneration" classname="com.dataset.acquisition.DatasetLogicTest" time="0.177"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

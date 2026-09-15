@@ -1,0 +1,16 @@
+R_DEF: Internal format may change without notice
+local
+string app_name
+string camera_permission_required
+string category_bad
+string category_good
+string category_normal
+string grant_permission
+string retake_photo
+string sample_aligned
+string use_photo
+string warning_misaligned
+style Theme.DatasetAcquisition
+xml backup_rules
+xml data_extraction_rules
+xml file_paths
