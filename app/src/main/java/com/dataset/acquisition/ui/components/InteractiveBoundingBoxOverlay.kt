@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -48,8 +48,8 @@ private enum class DragHandle {
 }
 
 /**
- * Overlay interaktif Bounding Box berbentuk kotak sederhana.
- * Mendukung mode deteksi realtime dan mode kalibrasi manual (bebas / free-form).
+ * Overlay interaktif Bounding Box dengan Grid Kamera.
+ * Dioptimalkan untuk responsivitas free-form dan tampilan bersih.
  */
 @Composable
 fun InteractiveBoundingBoxOverlay(
@@ -65,7 +65,6 @@ fun InteractiveBoundingBoxOverlay(
 
         var activeHandle by remember { mutableStateOf(DragHandle.NONE) }
 
-        // Handler gestur Drag untuk pengaturan bebas (free-form width/height/position)
         val gestureModifier = if (isEditMode) {
             Modifier.pointerInput(targetRoi, screenWidth, screenHeight) {
                 detectDragGestures(
@@ -77,18 +76,17 @@ fun InteractiveBoundingBoxOverlay(
                         val boxRight = boxLeft + boxWidth
                         val boxBottom = boxTop + boxHeight
 
-                        val touchRadius = 48.dp.toPx()
+                        val touchRadius = 64.dp.toPx()
 
-                        // Hit test handle mana yang disentuh
                         activeHandle = when {
                             hypot(offset.x - boxLeft, offset.y - boxTop) <= touchRadius -> DragHandle.TOP_LEFT
                             hypot(offset.x - boxRight, offset.y - boxTop) <= touchRadius -> DragHandle.TOP_RIGHT
                             hypot(offset.x - boxLeft, offset.y - boxBottom) <= touchRadius -> DragHandle.BOTTOM_LEFT
                             hypot(offset.x - boxRight, offset.y - boxBottom) <= touchRadius -> DragHandle.BOTTOM_RIGHT
-                            kotlin.math.abs(offset.y - boxTop) <= touchRadius && offset.x in boxLeft..boxRight -> DragHandle.TOP
-                            kotlin.math.abs(offset.y - boxBottom) <= touchRadius && offset.x in boxLeft..boxRight -> DragHandle.BOTTOM
-                            kotlin.math.abs(offset.x - boxLeft) <= touchRadius && offset.y in boxTop..boxBottom -> DragHandle.LEFT
-                            kotlin.math.abs(offset.x - boxRight) <= touchRadius && offset.y in boxTop..boxBottom -> DragHandle.RIGHT
+                            kotlin.math.abs(offset.y - boxTop) <= touchRadius / 1.5f && offset.x in boxLeft..boxRight -> DragHandle.TOP
+                            kotlin.math.abs(offset.y - boxBottom) <= touchRadius / 1.5f && offset.x in boxLeft..boxRight -> DragHandle.BOTTOM
+                            kotlin.math.abs(offset.x - boxLeft) <= touchRadius / 1.5f && offset.y in boxTop..boxBottom -> DragHandle.LEFT
+                            kotlin.math.abs(offset.x - boxRight) <= touchRadius / 1.5f && offset.y in boxTop..boxBottom -> DragHandle.RIGHT
                             offset.x in boxLeft..boxRight && offset.y in boxTop..boxBottom -> DragHandle.CENTER
                             else -> DragHandle.NONE
                         }
@@ -97,16 +95,13 @@ fun InteractiveBoundingBoxOverlay(
                     onDragCancel = { activeHandle = DragHandle.NONE },
                     onDrag = { change, dragAmount ->
                         change.consume()
-
                         val dx = dragAmount.x / screenWidth
                         val dy = dragAmount.y / screenHeight
-
                         var left = targetRoi.left
                         var right = targetRoi.right
                         var top = targetRoi.top
                         var bottom = targetRoi.bottom
-
-                        val minSize = 0.10f
+                        val minSize = 0.05f
 
                         when (activeHandle) {
                             DragHandle.CENTER -> {
@@ -115,50 +110,20 @@ fun InteractiveBoundingBoxOverlay(
                                 onRoiChanged(targetRoi.copy(centerX = newCx, centerY = newCy))
                                 return@detectDragGestures
                             }
-                            DragHandle.TOP_LEFT -> {
-                                left = (left + dx).coerceIn(0f, right - minSize)
-                                top = (top + dy).coerceIn(0f, bottom - minSize)
-                            }
-                            DragHandle.TOP_RIGHT -> {
-                                right = (right + dx).coerceIn(left + minSize, 1f)
-                                top = (top + dy).coerceIn(0f, bottom - minSize)
-                            }
-                            DragHandle.BOTTOM_LEFT -> {
-                                left = (left + dx).coerceIn(0f, right - minSize)
-                                bottom = (bottom + dy).coerceIn(top + minSize, 1f)
-                            }
-                            DragHandle.BOTTOM_RIGHT -> {
-                                right = (right + dx).coerceIn(left + minSize, 1f)
-                                bottom = (bottom + dy).coerceIn(top + minSize, 1f)
-                            }
-                            DragHandle.TOP -> {
-                                top = (top + dy).coerceIn(0f, bottom - minSize)
-                            }
-                            DragHandle.BOTTOM -> {
-                                bottom = (bottom + dy).coerceIn(top + minSize, 1f)
-                            }
-                            DragHandle.LEFT -> {
-                                left = (left + dx).coerceIn(0f, right - minSize)
-                            }
-                            DragHandle.RIGHT -> {
-                                right = (right + dx).coerceIn(left + minSize, 1f)
-                            }
+                            DragHandle.TOP_LEFT -> { left = (left + dx).coerceIn(0f, right - minSize); top = (top + dy).coerceIn(0f, bottom - minSize) }
+                            DragHandle.TOP_RIGHT -> { right = (right + dx).coerceIn(left + minSize, 1f); top = (top + dy).coerceIn(0f, bottom - minSize) }
+                            DragHandle.BOTTOM_LEFT -> { left = (left + dx).coerceIn(0f, right - minSize); bottom = (bottom + dy).coerceIn(top + minSize, 1f) }
+                            DragHandle.BOTTOM_RIGHT -> { right = (right + dx).coerceIn(left + minSize, 1f); bottom = (bottom + dy).coerceIn(top + minSize, 1f) }
+                            DragHandle.TOP -> top = (top + dy).coerceIn(0f, bottom - minSize)
+                            DragHandle.BOTTOM -> bottom = (bottom + dy).coerceIn(top + minSize, 1f)
+                            DragHandle.LEFT -> left = (left + dx).coerceIn(0f, right - minSize)
+                            DragHandle.RIGHT -> right = (right + dx).coerceIn(left + minSize, 1f)
                             DragHandle.NONE -> return@detectDragGestures
                         }
 
                         val newWidth = right - left
                         val newHeight = bottom - top
-                        val newCx = left + (newWidth / 2f)
-                        val newCy = top + (newHeight / 2f)
-
-                        onRoiChanged(
-                            targetRoi.copy(
-                                centerX = newCx,
-                                centerY = newCy,
-                                width = newWidth,
-                                height = newHeight
-                            )
-                        )
+                        onRoiChanged(targetRoi.copy(centerX = left + (newWidth / 2f), centerY = top + (newHeight / 2f), width = newWidth, height = newHeight))
                     }
                 )
             }
@@ -166,17 +131,21 @@ fun InteractiveBoundingBoxOverlay(
             Modifier
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .then(gestureModifier)
-        ) {
-            // Canvas untuk menggambar Bounding Box kotak sederhana
+        Box(modifier = Modifier.fillMaxSize().then(gestureModifier)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
+                val gridColor = Color.White.copy(alpha = 0.15f)
+                val gridStroke = 1.dp.toPx()
+                drawLine(gridColor, Offset(size.width / 3, 0f), Offset(size.width / 3, size.height), gridStroke)
+                drawLine(gridColor, Offset(size.width * 2 / 3, 0f), Offset(size.width * 2 / 3, size.height), gridStroke)
+                drawLine(gridColor, Offset(0f, size.height / 3), Offset(size.width, size.height / 3), gridStroke)
+                drawLine(gridColor, Offset(0f, size.height * 2 / 3), Offset(size.width, size.height * 2 / 3), gridStroke)
+
                 val boxWidth = screenWidth * targetRoi.width
                 val boxHeight = screenHeight * targetRoi.height
                 val boxLeft = (screenWidth * targetRoi.centerX) - (boxWidth / 2f)
                 val boxTop = (screenHeight * targetRoi.centerY) - (boxHeight / 2f)
+                val boxRight = boxLeft + boxWidth
+                val boxBottom = boxTop + boxHeight
 
                 val boxColor = when {
                     isEditMode -> StatusBlue
@@ -185,146 +154,61 @@ fun InteractiveBoundingBoxOverlay(
                     else -> OverlayGuideLine
                 }
 
-                // Semi-transparent shading di luar target box
-                drawRect(
-                    color = Color(0x44000000),
-                    size = size
-                )
+                drawRect(color = Color(0x22000000), size = size)
+                drawRect(color = Color.Transparent, topLeft = Offset(boxLeft, boxTop), size = Size(boxWidth, boxHeight))
 
-                // Cutout highlight (transparan di dalam area box)
-                drawRect(
-                    color = Color.Transparent,
-                    topLeft = Offset(boxLeft, boxTop),
-                    size = Size(boxWidth, boxHeight)
-                )
-
-                // Gambar border bounding box kotak utama
-                val strokeWidth = if (isEditMode) 3.5.dp.toPx() else 2.5.dp.toPx()
-                val pathEffect = if (alignmentState.status == AlignmentStatus.ALIGNED) null else PathEffect.dashPathEffect(floatArrayOf(20f, 15f), 0f)
+                val strokeWidth = if (isEditMode) 3.dp.toPx() else 2.dp.toPx()
+                val pathEffect = if (alignmentState.status == AlignmentStatus.ALIGNED) null else PathEffect.dashPathEffect(floatArrayOf(15f, 10f), 0f)
 
                 drawRoundRect(
                     color = boxColor,
                     topLeft = Offset(boxLeft, boxTop),
                     size = Size(boxWidth, boxHeight),
-                    cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx()),
+                    cornerRadius = CornerRadius(6.dp.toPx(), 6.dp.toPx()),
                     style = Stroke(width = strokeWidth, pathEffect = pathEffect)
                 )
 
-                // Crosshair sederhana di pusat kotak
-                val crosshairLength = 14.dp.toPx()
-                val centerX = screenWidth * targetRoi.centerX
-                val centerY = screenHeight * targetRoi.centerY
-                drawLine(
-                    color = boxColor.copy(alpha = 0.7f),
-                    start = Offset(centerX - crosshairLength, centerY),
-                    end = Offset(centerX + crosshairLength, centerY),
-                    strokeWidth = 2.dp.toPx()
-                )
-                drawLine(
-                    color = boxColor.copy(alpha = 0.7f),
-                    start = Offset(centerX, centerY - crosshairLength),
-                    end = Offset(centerX, centerY + crosshairLength),
-                    strokeWidth = 2.dp.toPx()
-                )
-
-                // Mode Kalibrasi: Gambar handle kontrol di 4 pojok & 4 sisi
                 if (isEditMode) {
-                    val handleRadius = 9.dp.toPx()
-                    val handles = listOf(
-                        Offset(boxLeft, boxTop),
-                        Offset(boxLeft + boxWidth, boxTop),
-                        Offset(boxLeft, boxTop + boxHeight),
-                        Offset(boxLeft + boxWidth, boxTop + boxHeight),
-                        Offset(boxLeft + (boxWidth / 2f), boxTop),
-                        Offset(boxLeft + (boxWidth / 2f), boxTop + boxHeight),
-                        Offset(boxLeft, boxTop + (boxHeight / 2f)),
-                        Offset(boxLeft + boxWidth, boxTop + (boxHeight / 2f))
+                    val r = 6.dp.toPx()
+                    val hPos = listOf(
+                        Offset(boxLeft, boxTop), Offset(boxRight, boxTop),
+                        Offset(boxLeft, boxBottom), Offset(boxRight, boxBottom),
+                        Offset(boxLeft + boxWidth / 2, boxTop), Offset(boxLeft + boxWidth / 2, boxBottom),
+                        Offset(boxLeft, boxTop + boxHeight / 2), Offset(boxRight, boxTop + boxHeight / 2)
                     )
-                    handles.forEach { h ->
-                        drawCircle(
-                            color = StatusBlue,
-                            radius = handleRadius,
-                            center = h
-                        )
-                        drawCircle(
-                            color = Color.White,
-                            radius = handleRadius * 0.45f,
-                            center = h
-                        )
+                    hPos.forEach {
+                        drawCircle(StatusBlue, r, it)
+                        drawCircle(Color.White, r * 0.4f, it)
                     }
                 }
             }
 
-            // Status Banner Notifikasi Posisi
             BannerStatusOverlay(
                 alignmentState = alignmentState,
                 isEditMode = isEditMode,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 64.dp)
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 70.dp)
             )
         }
     }
 }
 
-/**
- * Banner notifikasi status posisi realtime
- */
 @Composable
 private fun BannerStatusOverlay(
     alignmentState: AlignmentState,
     isEditMode: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val isVisible = isEditMode || alignmentState.message.isNotBlank()
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = modifier
-    ) {
-        val (bgColor, icon, text) = when {
-            isEditMode -> Triple(
-                StatusBlue.copy(alpha = 0.9f),
-                Icons.Default.Warning,
-                "Mode Kalibrasi: Tarik pojok/sisi untuk ubah ukuran kotak bebas (free-form)"
-            )
-            alignmentState.status == AlignmentStatus.MISALIGNED -> Triple(
-                OverlayMisalignedLine.copy(alpha = 0.92f),
-                Icons.Default.Warning,
-                alignmentState.message
-            )
-            alignmentState.status == AlignmentStatus.ALIGNED -> Triple(
-                OverlayAlignedLine.copy(alpha = 0.92f),
-                Icons.Default.CheckCircle,
-                "Posisi Pas"
-            )
-            else -> Triple(
-                Color(0xCC1E293B),
-                Icons.Default.Warning,
-                alignmentState.message
-            )
-        }
+    val isVisible = isEditMode || (alignmentState.message.isNotBlank() && alignmentState.status != AlignmentStatus.ALIGNED)
+    AnimatedVisibility(visible = isVisible, enter = fadeIn(), exit = fadeOut(), modifier = modifier) {
+        val (bgColor, icon, text) = if (isEditMode) Triple(StatusBlue.copy(0.8f), Icons.Default.Warning, "Mode Kalibrasi: Atur Kotak")
+        else Triple(OverlayMisalignedLine.copy(0.8f), Icons.Default.Warning, alignmentState.message)
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .background(bgColor, RoundedCornerShape(20.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp)
+            modifier = Modifier.background(bgColor, RoundedCornerShape(10.dp)).padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(
-                text = text,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 13.sp
-            )
+            Icon(icon, null, tint = Color.White, modifier = Modifier.padding(end = 6.dp).size(16.dp))
+            Text(text, color = Color.White, fontWeight = FontWeight.Medium, fontSize = 11.sp)
         }
     }
 }

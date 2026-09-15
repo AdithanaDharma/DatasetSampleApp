@@ -27,8 +27,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,19 +50,16 @@ import com.dataset.acquisition.ui.theme.TextSecondary
 
 /**
  * Dialog pemilihan label kualitas sampel ("Baik", "Normal", "Buruk")
- * serta konfirmasi Sample ID (Optimized untuk Landscape).
+ * Penomoran ID (Sample & Image) dilakukan secara otomatis (Auto-increment).
  */
 @Composable
 fun QualityLabelDialog(
-    initialSampleId: String,
-    estimatedFileName: (QualityCategory, String) -> String,
+    estimatedFileName: (QualityCategory) -> String,
     onDismiss: () -> Unit,
-    onConfirmSave: (QualityCategory, String) -> Unit
+    onConfirmSave: (QualityCategory) -> Unit
 ) {
     var selectedCategory by remember { mutableStateOf(QualityCategory.BAIK) }
-    var sampleId by remember { mutableStateOf(initialSampleId) }
-
-    val previewName = estimatedFileName(selectedCategory, sampleId)
+    val previewName = estimatedFileName(selectedCategory)
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -88,38 +83,20 @@ fun QualityLabelDialog(
                 )
 
                 Text(
-                    text = "Pilih kategori untuk menentukan folder penyimpanan dan label dataset",
+                    text = "ID Sampel dan Gambar akan diisi secara otomatis untuk menjaga konsistensi.",
                     color = TextSecondary,
                     fontSize = 12.sp,
-                    modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+                    modifier = Modifier.padding(top = 2.dp, bottom = 18.dp)
                 )
-
-                // Input Sample ID
-                OutlinedTextField(
-                    value = sampleId,
-                    onValueChange = { sampleId = it.uppercase() },
-                    label = { Text("Sample ID") },
-                    placeholder = { Text("Contoh: S001") },
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryAccent,
-                        unfocusedBorderColor = DarkSurfaceVariant,
-                        focusedTextColor = TextPrimary,
-                        unfocusedTextColor = TextPrimary
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Kategori Kualitas:",
+                    text = "Pilih Kategori Kualitas:",
                     color = TextPrimary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Pilihan Kategori: Baik, Normal, Buruk
                 Row(
@@ -145,7 +122,7 @@ fun QualityLabelDialog(
                                     RoundedCornerShape(10.dp)
                                 )
                                 .clickable { selectedCategory = category }
-                                .padding(vertical = 10.dp),
+                                .padding(vertical = 12.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
@@ -153,10 +130,10 @@ fun QualityLabelDialog(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(8.dp)
+                                        .size(10.dp)
                                         .background(categoryColor, CircleShape)
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = category.displayName,
                                     color = if (isSelected) Color.White else TextSecondary,
@@ -168,28 +145,28 @@ fun QualityLabelDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                // Preview Folder & Nama File yang akan disimpan
+                // Preview Penamaan Otomatis
                 Card(
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier.padding(10.dp),
+                        modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Folder,
                             contentDescription = null,
                             tint = PrimaryAccent,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
-                                text = "Lokasi: /Dataset/${selectedCategory.folderName}/",
+                                text = "Estimasi Nama File (Auto-ID):",
                                 color = TextMuted,
                                 fontSize = 10.sp
                             )
@@ -203,7 +180,7 @@ fun QualityLabelDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // Action Buttons
                 Row(
@@ -220,7 +197,7 @@ fun QualityLabelDialog(
                     }
 
                     Button(
-                        onClick = { onConfirmSave(selectedCategory, sampleId) },
+                        onClick = { onConfirmSave(selectedCategory) },
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent)
                     ) {
@@ -228,10 +205,10 @@ fun QualityLabelDialog(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
                             tint = DarkSurface,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Simpan", color = DarkSurface, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Konfirmasi & Simpan", color = DarkSurface, fontWeight = FontWeight.Bold)
                     }
                 }
             }

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             DatasetAcquisitionTheme {
                 Surface(
@@ -154,7 +156,6 @@ fun MainAppContent(viewModel: CameraViewModel) {
     // State Alur Navigasi
     val capturedFile by viewModel.capturedPhotoFile.collectAsState()
     val showQualityDialog by viewModel.showQualityDialog.collectAsState()
-    val currentSampleId by viewModel.currentSampleId.collectAsState()
     val savedMessage by viewModel.savedStatusMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -183,26 +184,24 @@ fun MainAppContent(viewModel: CameraViewModel) {
         // Pop-up / Dialog Kategorisasi Kualitas ("Baik", "Normal", "Buruk")
         if (showQualityDialog) {
             QualityLabelDialog(
-                initialSampleId = currentSampleId,
-                estimatedFileName = { category, sampleId ->
-                    viewModel.getEstimatedFileName(category, sampleId)
+                estimatedFileName = { category ->
+                    viewModel.getEstimatedFileName(category)
                 },
                 onDismiss = { viewModel.dismissQualityDialog() },
-                onConfirmSave = { category, sampleId ->
+                onConfirmSave = { category ->
                     viewModel.saveLabeledPhoto(
                         category = category,
-                        sampleId = sampleId,
                         onSuccess = { savedFile ->
                             Toast.makeText(
                                 context,
-                                "Tersimpan di: /Dataset/${category.folderName}/${savedFile.name}",
-                                Toast.LENGTH_LONG
+                                "Tersimpan: ${savedFile.name}",
+                                Toast.LENGTH_SHORT
                             ).show()
                         },
                         onError = { err ->
                             Toast.makeText(
                                 context,
-                                "Gagal menyimpan foto: ${err.message}",
+                                "Gagal menyimpan: ${err.message}",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }

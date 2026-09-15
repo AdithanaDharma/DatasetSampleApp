@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,7 +37,9 @@ import com.dataset.acquisition.ui.theme.TextPrimary
 import java.io.File
 
 /**
- * Halaman Preview / Konfirmasi foto sampel (Optimized untuk Landscape).
+ * Halaman Preview Foto - Native Style:
+ * - Full screen image preview.
+ * - Bottom action bar dengan safe area padding.
  */
 @Composable
 fun PreviewScreen(
@@ -48,87 +51,57 @@ fun PreviewScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(DarkBackground)
+            .background(Color.Black)
     ) {
-        // Tampilan Foto Hasil Tangkapan Kamera
         AsyncImage(
             model = capturedImageFile,
-            contentDescription = "Hasil Foto Sampel",
+            contentDescription = "Preview",
             contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize()
         )
 
-        // Header Informasi
+        // Header Title
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 12.dp)
-                .background(DarkSurface.copy(alpha = 0.85f), RoundedCornerShape(16.dp))
+                .padding(top = 16.dp)
+                .background(Color.Black.copy(0.4f), RoundedCornerShape(12.dp))
                 .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
-            Text(
-                text = "Pratinjau Hasil Sampel",
-                color = TextPrimary,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 13.sp
-            )
+            Text("Konfirmasi Hasil", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
         }
 
-        // Bottom Action Bar: "Foto Ulang" vs "Gunakan Foto"
+        // Action Bar (Bottom)
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(DarkBackground.copy(alpha = 0.85f))
-                .padding(horizontal = 24.dp, vertical = 12.dp),
+                .background(Color.Black.copy(0.6f))
+                .navigationBarsPadding() // [SAFE AREA FIX]
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Tombol "Foto Ulang"
             OutlinedButton(
                 onClick = onRetakePhoto,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = StatusRed
-                ),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = null,
-                    tint = StatusRed,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Foto Ulang",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
-                )
+                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Foto Ulang", fontSize = 13.sp)
             }
 
-            // Tombol "Gunakan Foto"
             Button(
                 onClick = onUsePhoto,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryAccent
-                ),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent),
                 modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Gunakan Foto",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
+                Icon(Icons.Default.Check, null, tint = Color.Black, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Gunakan Foto", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
         }
     }

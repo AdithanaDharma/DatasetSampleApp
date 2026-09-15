@@ -1,4 +1,4 @@
-#Tue Sep 15 11:10:23 WIB 2026
+#Tue Sep 15 18:19:15 WIB 2026
 base.0=C\:\\Users\\User\\Downloads\\Semester 8\\TA\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=C\:\\Users\\User\\Downloads\\Semester 8\\TA\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
 base.10=C\:\\Users\\User\\Downloads\\Semester 8\\TA\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\9\\classes.dex

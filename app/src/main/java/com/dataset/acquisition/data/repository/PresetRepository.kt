@@ -14,8 +14,7 @@ import java.util.UUID
 
 /**
  * Repository pengelola koleksi preset kamera Pro Mode.
- * Menggunakan SharedPreferences agar state preset (ISO, EV, WB, Shutter Speed, Zoom, TargetRoi)
- * tersimpan secara permanen (persistent state) saat aplikasi ditutup dan dibuka kembali.
+ * Konfigurasi Default: Shutter Lock OFF, hanya 1 preset standar.
  */
 class PresetRepository(context: Context) {
 
@@ -23,9 +22,9 @@ class PresetRepository(context: Context) {
 
     private val defaultPresets = listOf(
         CameraPreset(
-            id = "preset_studio_beaker_250",
-            name = "Studio Mini - Gelas Beaker 250ml",
-            description = "Pencahayaan LED studio untuk gelas kimia 250ml",
+            id = "preset_default_pro",
+            name = "Manual Pro Mode",
+            description = "Konfigurasi standar untuk akuisisi dataset",
             iso = 100,
             shutterSpeedNumerator = 1L,
             shutterSpeedDenominator = 50L,
@@ -33,39 +32,9 @@ class PresetRepository(context: Context) {
             wbKelvin = 5500,
             exposureCompensationIndex = 0,
             zoomRatio = 1.0f,
-            targetRoi = TargetRoi(centerX = 0.50f, centerY = 0.50f, width = 0.45f, height = 0.45f, tolerance = 0.12f),
+            targetRoi = TargetRoi(centerX = 0.50f, centerY = 0.50f, width = 0.40f, height = 0.50f, tolerance = 0.12f),
             namingTemplate = "[kategoriKualitas]_[tanggalAmbil]_[sampleid]_[imageid].jpg",
-            autoLockShutter = true
-        ),
-        CameraPreset(
-            id = "preset_pro_low_iso",
-            name = "Pro Studio - Low Noise (ISO 50)",
-            description = "Menggunakan ISO 50 terendah untuk noise minimal",
-            iso = 50,
-            shutterSpeedNumerator = 1L,
-            shutterSpeedDenominator = 50L,
-            wbMode = WhiteBalanceMode.MANUAL,
-            wbKelvin = 5000,
-            exposureCompensationIndex = 0,
-            zoomRatio = 1.0f,
-            targetRoi = TargetRoi(centerX = 0.50f, centerY = 0.50f, width = 0.40f, height = 0.40f, tolerance = 0.10f),
-            namingTemplate = "[kategoriKualitas]_[tanggalAmbil]_[sampleid]_[imageid].jpg",
-            autoLockShutter = true
-        ),
-        CameraPreset(
-            id = "preset_daylight_sample",
-            name = "Cahaya Alami (Daylight)",
-            description = "Kalibrasi untuk pencahayaan ruangan alami",
-            iso = 50,
-            shutterSpeedNumerator = 1L,
-            shutterSpeedDenominator = 250L,
-            wbMode = WhiteBalanceMode.DAYLIGHT,
-            wbKelvin = 5500,
-            exposureCompensationIndex = 0,
-            zoomRatio = 1.0f,
-            targetRoi = TargetRoi(centerX = 0.50f, centerY = 0.50f, width = 0.45f, height = 0.45f, tolerance = 0.14f),
-            namingTemplate = "[kategoriKualitas]_[tanggalAmbil]_[sampleid]_[imageid].jpg",
-            autoLockShutter = true
+            autoLockShutter = false // [DEFAULT] Shutter Lock OFF
         )
     )
 
@@ -188,7 +157,7 @@ class PresetRepository(context: Context) {
                         zoomRatio = obj.optDouble("zoomRatio", 1.0).toFloat(),
                         targetRoi = roi,
                         namingTemplate = obj.optString("namingTemplate", "[kategoriKualitas]_[tanggalAmbil]_[sampleid]_[imageid].jpg"),
-                        autoLockShutter = obj.optBoolean("autoLockShutter", true)
+                        autoLockShutter = obj.optBoolean("autoLockShutter", false)
                     )
                 )
             }

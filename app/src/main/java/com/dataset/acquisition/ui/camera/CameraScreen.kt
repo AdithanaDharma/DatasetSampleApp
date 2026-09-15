@@ -22,8 +22,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -81,10 +83,10 @@ import java.util.concurrent.Executors
 private const val TAG = "CameraScreen"
 
 /**
- * Halaman Utama Kamera Pro Mode (Optimized untuk Posisi Landscape & Bounding Box Kotak):
- * - Viewfinder CameraX dengan kontrol manual Camera2 (ISO min 50, Shutter 1/12000s-32s, WB Kelvin, Zoom Lock)
- * - Manajemen Sesi Foto, Session Persistence, & Auto-Zip Export ke WhatsApp
- * - Pemandu Bounding Box free-form & Deteksi Posisi/Skala
+ * Halaman Utama Kamera - Native Look & Feel:
+ * - Viewfinder full screen dengan grid.
+ * - Kontrol shutter di sisi kanan (landscape).
+ * - Bottom Bar untuk manajemen sesi & pengaturan.
  */
 @SuppressLint("MissingPermission")
 @Composable
@@ -112,14 +114,10 @@ fun CameraScreen(
 
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    // Inisialisasi Analyzer ML Kit
     val alignmentAnalyzer = remember {
-        GlassAlignmentAnalyzer { state ->
-            viewModel.updateAlignmentState(state)
-        }
+        GlassAlignmentAnalyzer { state -> viewModel.updateAlignmentState(state) }
     }
 
-    // Sinkronisasi preset aktif & mode edit ke analyzer & kamera
     LaunchedEffect(activePreset, isEditMode, activeCamera) {
         alignmentAnalyzer.activePreset = activePreset
         alignmentAnalyzer.isEditMode = isEditMode
@@ -129,389 +127,199 @@ fun CameraScreen(
     }
 
     DisposableEffect(Unit) {
-        onDispose {
-            cameraExecutor.shutdown()
-        }
+        onDispose { cameraExecutor.shutdown() }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(DarkBackground)
-    ) {
-        // 1. Viewfinder CameraX
+    Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
+        // 1. Viewfinder
         AndroidView(
             factory = { ctx ->
-                val previewView = PreviewView(ctx).apply {
-                    scaleType = PreviewView.ScaleType.FILL_CENTER
-                }
-
+                val previewView = PreviewView(ctx).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
                 cameraProviderFuture.addListener({
                     val cameraProvider = cameraProviderFuture.get()
-
                     val preview = Preview.Builder()
-                        .also { builder ->
-                            ManualCameraController.applyPresetToPreviewBuilder(builder, activePreset)
-                        }
-                        .build()
-                        .also {
-                            it.surfaceProvider = previewView.surfaceProvider
-                        }
+                        .also { ManualCameraController.applyPresetToPreviewBuilder(it, activePreset) }
+                        .build().also { it.surfaceProvider = previewView.surfaceProvider }
 
                     val capture = ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                        .also { builder ->
-                            ManualCameraController.applyPresetToCaptureBuilder(builder, activePreset)
-                        }
+                        .also { ManualCameraController.applyPresetToCaptureBuilder(it, activePreset) }
                         .build()
                     imageCapture = capture
 
                     val imageAnalysis = ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build()
-                        .also { analysis ->
-                            analysis.setAnalyzer(cameraExecutor, alignmentAnalyzer)
-                        }
-
-                    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                        .build().also { it.setAnalyzer(cameraExecutor, alignmentAnalyzer) }
 
                     try {
                         cameraProvider.unbindAll()
-                        val camera = cameraProvider.bindToLifecycle(
-                            lifecycleOwner,
-                            cameraSelector,
-                            preview,
-                            capture,
-                            imageAnalysis
-                        )
-                        activeCamera = camera
-                        ManualCameraController.applyPresetToActiveCamera(camera, activePreset)
+                        activeCamera = cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture, imageAnalysis)
+                        ManualCameraController.applyPresetToActiveCamera(activeCamera!!, activePreset)
                     } catch (exc: Exception) {
-                        Log.e(TAG, "Gagal mengaitkan lifecycle CameraX: ${exc.message}", exc)
+                        Log.e(TAG, "Lifecycle Error", exc)
                     }
                 }, ContextCompat.getMainExecutor(ctx))
-
                 previewView
             },
             modifier = Modifier.fillMaxSize()
         )
 
-        // 2. Interactive Bounding Box Overlay Kotak Free-Form
+        // 2. Grid & Bounding Box Overlay
         InteractiveBoundingBoxOverlay(
             targetRoi = activePreset.targetRoi,
             alignmentState = alignmentState,
             isEditMode = isEditMode,
-            onRoiChanged = { newRoi ->
-                viewModel.updateTargetRoi(newRoi)
-            }
+            onRoiChanged = { viewModel.updateTargetRoi(it) }
         )
 
-        // 3. Top Bar: Quick Preset Selector & Status Parameter Pro Kamera
-        Column(
+        // 3. Top Status Info (Hanya Parameter Pro)
+        Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = 8.dp, start = 12.dp, end = 12.dp)
+                .statusBarsPadding()
+                .padding(top = 12.dp),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Info Preset Aktif & Status Parameter Manual Pro (ISO, Shutter, WB, Zoom)
-                Column(
-                    modifier = Modifier
-                        .background(DarkSurface.copy(alpha = 0.85f), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Text(
-                        text = activePreset.name,
-                        color = TextPrimary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "ISO ${activePreset.iso} • ${activePreset.shutterSpeedLabel} • ${activePreset.whiteBalanceTitle} • ${activePreset.zoomRatio}x",
-                        color = PrimaryAccent,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.sp
-                    )
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Tombol Toggle Mode Kalibrasi Bounding Box
-                    IconButton(
-                        onClick = { viewModel.toggleEditMode() },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(
-                                if (isEditMode) StatusBlue else DarkSurface.copy(alpha = 0.85f),
-                                CircleShape
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CropFree,
-                            contentDescription = "Edit Bounding Box",
-                            tint = if (isEditMode) Color.White else TextSecondary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    // Tombol Buka Pengaturan Preset Pro
-                    IconButton(
-                        onClick = { viewModel.openPresetConfigDialog() },
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(DarkSurface.copy(alpha = 0.85f), CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Tune,
-                            contentDescription = "Pengaturan Preset Pro",
-                            tint = TextSecondary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Preset Quick Selection Chips
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .background(Color.Black.copy(0.4f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                presets.forEach { preset ->
-                    val isSelected = preset.id == activePreset.id
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                if (isSelected) PrimaryAccent else DarkSurface.copy(alpha = 0.8f),
-                                RoundedCornerShape(16.dp)
-                            )
-                            .clickable { viewModel.selectPreset(preset.id) }
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = preset.name,
-                            color = if (isSelected) Color.Black else TextSecondary,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 11.sp
-                        )
-                    }
-                }
+                Text(
+                    "ISO ${activePreset.iso} • ${activePreset.shutterSpeedLabel} • ${activePreset.whiteBalanceTitle} • ${activePreset.zoomRatio}x",
+                    color = PrimaryAccent, fontSize = 10.sp, fontWeight = FontWeight.Medium
+                )
             }
         }
 
-        // 4. Baris Kontrol Sesi Foto di Pojok Kiri Bawah (Session Controls)
-        Box(
+        // 4. Manajemen Sesi & Pengaturan (Bottom Left)
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 16.dp)
+                .navigationBarsPadding()
+                .padding(start = 20.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Sesi Info
+            val session = activeSession
+            Box(
+                modifier = Modifier
+                    .background(Color.Black.copy(0.5f), RoundedCornerShape(10.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                // Info Sesi Aktif
-                val session = activeSession
-                val sessionLabel = if (session != null) "${session.name} • ${session.photoCount} foto" else "Belum Ada Sesi"
-
-                Column(
-                    modifier = Modifier
-                        .background(DarkSurface.copy(alpha = 0.85f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
+                Column {
+                    Text("SESI AKTIF", color = Color.White.copy(0.6f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        text = "Sesi Foto Aktif:",
-                        color = TextMuted,
-                        fontSize = 10.sp
-                    )
-                    Text(
-                        text = sessionLabel,
-                        color = StatusGreen,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        if (session != null) "${session.name} (${session.totalSampleCount} foto)" else "Belum Ada Sesi",
+                        color = if (session != null) StatusGreen else Color.White,
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold
                     )
                 }
+            }
 
-                // Tombol "Sesi Baru"
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedButton(
                     onClick = { viewModel.openNewSessionDialog() },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = DarkSurface.copy(alpha = 0.85f),
-                        contentColor = TextPrimary
-                    ),
-                    modifier = Modifier.height(38.dp)
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Black.copy(0.5f), contentColor = Color.White),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.height(36.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = PrimaryAccent,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Sesi Baru", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp), tint = PrimaryAccent)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Sesi Baru", fontSize = 11.sp)
                 }
 
-                // Tombol "Sesi Selesai (WhatsApp)" jika ada sesi aktif
-                if (session != null && session.photoCount > 0) {
+                // Tombol Bounding Box (Repositioned)
+                IconButton(
+                    onClick = { viewModel.toggleEditMode() },
+                    modifier = Modifier.size(36.dp).background(if (isEditMode) StatusBlue else Color.Black.copy(0.5f), RoundedCornerShape(8.dp))
+                ) {
+                    Icon(Icons.Default.CropFree, "Edit", tint = Color.White, modifier = Modifier.size(18.dp))
+                }
+
+                // Tombol Settings (Repositioned)
+                IconButton(
+                    onClick = { viewModel.openPresetConfigDialog() },
+                    modifier = Modifier.size(36.dp).background(Color.Black.copy(0.5f), RoundedCornerShape(8.dp))
+                ) {
+                    Icon(Icons.Default.Tune, "Config", tint = Color.White, modifier = Modifier.size(18.dp))
+                }
+
+                if (session != null && session.totalSampleCount > 0) {
                     Button(
                         onClick = { viewModel.finishAndExportSession(context) },
-                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent),
-                        modifier = Modifier.height(38.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.height(36.dp)
                     ) {
                         if (isZipping) {
-                            CircularProgressIndicator(
-                                color = DarkBackground,
-                                strokeWidth = 2.dp,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            CircularProgressIndicator(color = Color.Black, strokeWidth = 2.dp, modifier = Modifier.size(14.dp))
                         } else {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = null,
-                                tint = DarkBackground,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Sesi Selesai (Zip)", color = DarkBackground, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Icon(Icons.Default.Share, null, modifier = Modifier.size(14.dp), tint = Color.Black)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Zip & WhatsApp", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
         }
 
-        // 5. Shutter Controls Ergonomis di Kanan Layar
+        // 5. Shutter Controls (Center Right)
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 20.dp),
-            contentAlignment = Alignment.Center
+                .navigationBarsPadding()
+                .padding(end = 30.dp)
         ) {
-            val isShutterUnlocked = alignmentState.isShutterEnabled && !isEditMode && !isCapturing
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Indikator Status Shutter Lock
+            val isUnlocked = (alignmentState.isShutterEnabled || !activePreset.autoLockShutter) && !isEditMode && !isCapturing
+            
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (activePreset.autoLockShutter && !isEditMode) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .background(DarkSurface.copy(alpha = 0.75f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.background(Color.Black.copy(0.6f), RoundedCornerShape(12.dp)).padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isShutterUnlocked) Icons.Default.LockOpen else Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = if (isShutterUnlocked) StatusGreen else StatusRed,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (isShutterUnlocked) "Siap" else "Terkunci",
-                            color = if (isShutterUnlocked) StatusGreen else TextMuted,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Icon(if (isUnlocked) Icons.Default.LockOpen else Icons.Default.Lock, null, tint = if (isUnlocked) StatusGreen else StatusRed, modifier = Modifier.size(10.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(if (isUnlocked) "Siap" else "Kunci", color = if (isUnlocked) StatusGreen else Color.White, fontSize = 9.sp)
                     }
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(Modifier.height(12.dp))
                 }
 
-                // Tombol Shutter Utama
+                // Native Shutter Button
                 Box(
                     modifier = Modifier
-                        .size(72.dp)
-                        .border(
-                            width = 4.dp,
-                            color = when {
-                                isEditMode -> TextMuted
-                                isShutterUnlocked -> StatusGreen
-                                else -> TextMuted
-                            },
-                            shape = CircleShape
-                        )
-                        .padding(5.dp)
-                        .background(
-                            color = when {
-                                isEditMode -> TextMuted.copy(alpha = 0.3f)
-                                isShutterUnlocked -> Color.White
-                                else -> TextMuted.copy(alpha = 0.4f)
-                            },
-                            shape = CircleShape
-                        )
-                        .clickable(enabled = isShutterUnlocked) {
-                            val capture = imageCapture ?: return@clickable
-                            val tempFile = viewModel.createTempFile()
-                            val outputOptions = ImageCapture.OutputFileOptions.Builder(tempFile).build()
-
+                        .size(76.dp)
+                        .border(4.dp, if (isUnlocked) Color.White else Color.Gray, CircleShape)
+                        .padding(6.dp)
+                        .background(if (isUnlocked) Color.White else Color.Gray.copy(0.4f), CircleShape)
+                        .clickable(enabled = isUnlocked) {
+                            val cap = imageCapture ?: return@clickable
+                            val file = viewModel.createTempFile()
                             isCapturing = true
-                            capture.takePicture(
-                                outputOptions,
-                                ContextCompat.getMainExecutor(context),
-                                object : ImageCapture.OnImageSavedCallback {
-                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                        isCapturing = false
-                                        viewModel.onPhotoCaptured(tempFile)
-                                    }
-
-                                    override fun onError(exc: ImageCaptureException) {
-                                        isCapturing = false
-                                        Log.e(TAG, "Gagal mengambil foto: ${exc.message}", exc)
-                                    }
+                            cap.takePicture(ImageCapture.OutputFileOptions.Builder(file).build(), ContextCompat.getMainExecutor(context), object : ImageCapture.OnImageSavedCallback {
+                                override fun onImageSaved(res: ImageCapture.OutputFileResults) {
+                                    isCapturing = false
+                                    viewModel.onPhotoCaptured(file)
                                 }
-                            )
+                                override fun onError(exc: ImageCaptureException) {
+                                    isCapturing = false
+                                    Log.e(TAG, "Capture Error", exc)
+                                }
+                            })
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isCapturing) {
-                        CircularProgressIndicator(
-                            color = PrimaryAccent,
-                            strokeWidth = 3.dp,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
+                    if (isCapturing) CircularProgressIndicator(color = PrimaryAccent, strokeWidth = 3.dp, modifier = Modifier.size(34.dp))
                 }
             }
         }
 
-        // Dialog Konfigurasi Preset Pro
-        if (showPresetDialog) {
-            PresetConfigDialog(
-                preset = activePreset,
-                onDismiss = { viewModel.closePresetConfigDialog() },
-                onSavePreset = { updatedPreset ->
-                    viewModel.savePreset(updatedPreset)
-                }
-            )
-        }
-
-        // Dialog Memulai Sesi Baru
-        if (showNewSessionDialog) {
-            NewSessionDialog(
-                onDismiss = { viewModel.closeNewSessionDialog() },
-                onStartSession = { name ->
-                    viewModel.startNewSession(name)
-                }
-            )
-        }
-
-        // Pop-up Resume Sesi Unfinished jika terdeteksi saat app dibuka kembali
-        val currentSession = activeSession
-        if (showResumeSessionDialog && currentSession != null) {
-            ResumeSessionDialog(
-                activeSession = currentSession,
-                isZipping = isZipping,
-                onResumeSession = { viewModel.resumeSession() },
-                onFinishAndExportSession = { viewModel.finishAndExportSession(context) }
-            )
-        }
+        // Dialogs
+        if (showPresetDialog) PresetConfigDialog(activePreset, { viewModel.closePresetConfigDialog() }, { viewModel.savePreset(it) })
+        if (showNewSessionDialog) NewSessionDialog({ viewModel.closeNewSessionDialog() }, { viewModel.startNewSession(it) })
+        if (showResumeSessionDialog && activeSession != null) ResumeSessionDialog(activeSession!!, isZipping, { viewModel.resumeSession() }, { viewModel.finishAndExportSession(context) })
     }
 }

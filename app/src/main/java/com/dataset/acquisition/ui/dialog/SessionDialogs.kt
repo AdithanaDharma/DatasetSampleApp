@@ -37,7 +37,7 @@ import com.dataset.acquisition.ui.theme.TextPrimary
 import com.dataset.acquisition.ui.theme.TextSecondary
 
 /**
- * Dialog Memulai Sesi Baru Foto Penelitian
+ * Dialog Memulai Sesi Foto Baru Foto Penelitian
  */
 @Composable
 fun NewSessionDialog(
@@ -167,13 +167,13 @@ fun ResumeSessionDialog(
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "• Jumlah Foto Tersimpan: ${activeSession.photoCount} foto",
+                            text = "• Jumlah Foto Tersimpan: ${activeSession.totalSampleCount} foto",
                             color = TextPrimary,
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp
                         )
                         Text(
-                            text = "• Sample ID Terakhir: ${activeSession.lastSampleId}",
+                            text = "• Image ID Berikutnya (Baik): IMG${String.format("%03d", activeSession.countBaik + 1)}",
                             color = StatusGreen,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 12.sp

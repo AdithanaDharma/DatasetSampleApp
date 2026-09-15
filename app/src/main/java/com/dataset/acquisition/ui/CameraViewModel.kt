@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 /**
- * ViewModel utama untuk mengelola state kamera Pro Mode, Sesi Foto, Session Persistence,
- * Auto-Zip & Share Intent, serta alur penyimpanan dataset berlabel kualitas.
+ * ViewModel utama untuk mengelola state kamera Pro Mode, Sesi Foto,
+ * Auto-Increment ID, serta alur penyimpanan dataset.
  */
 class CameraViewModel(
     application: Application
@@ -35,23 +35,18 @@ class CameraViewModel(
     val activePreset: StateFlow<CameraPreset> = presetRepository.activePreset
     val activeSession: StateFlow<SessionModel?> = sessionManager.activeSession
 
-    // Dialog Resume Sesi Unfinished jika terdeteksi saat app launch
     private val _showResumeSessionDialog = MutableStateFlow(sessionManager.activeSession.value != null)
     val showResumeSessionDialog: StateFlow<Boolean> = _showResumeSessionDialog.asStateFlow()
 
-    // State Alignment Realtime dari Analyzer
     private val _alignmentState = MutableStateFlow(AlignmentState())
     val alignmentState: StateFlow<AlignmentState> = _alignmentState.asStateFlow()
 
-    // Mode Kalibrasi / Edit Bounding Box manual oleh pengguna
     private val _isEditMode = MutableStateFlow(false)
     val isEditMode: StateFlow<Boolean> = _isEditMode.asStateFlow()
 
-    // File hasil foto sementara untuk halaman Preview
     private val _capturedPhotoFile = MutableStateFlow<File?>(null)
     val capturedPhotoFile: StateFlow<File?> = _capturedPhotoFile.asStateFlow()
 
-    // State Dialog
     private val _showQualityDialog = MutableStateFlow(false)
     val showQualityDialog: StateFlow<Boolean> = _showQualityDialog.asStateFlow()
 
@@ -64,13 +59,6 @@ class CameraViewModel(
     private val _isZipping = MutableStateFlow(false)
     val isZipping: StateFlow<Boolean> = _isZipping.asStateFlow()
 
-    // Sample ID saat ini
-    private val _currentSampleId = MutableStateFlow(
-        sessionManager.activeSession.value?.lastSampleId ?: "S001"
-    )
-    val currentSampleId: StateFlow<String> = _currentSampleId.asStateFlow()
-
-    // Notifikasi pesan penyimpanan terakhir
     private val _savedStatusMessage = MutableStateFlow<String?>(null)
     val savedStatusMessage: StateFlow<String?> = _savedStatusMessage.asStateFlow()
 
@@ -86,7 +74,7 @@ class CameraViewModel(
         if (newEditMode) {
             _alignmentState.value = AlignmentState(
                 status = AlignmentStatus.EDIT_MODE,
-                message = "Mode Kalibrasi: Tarik pojok/sisi untuk ubah ukuran kotak",
+                message = "Mode Kalibrasi: Atur Kotak",
                 isShutterEnabled = false
             )
         }
@@ -123,7 +111,6 @@ class CameraViewModel(
 
     fun startNewSession(customName: String) {
         val session = sessionManager.startNewSession(customName)
-        _currentSampleId.value = session.lastSampleId
         _showNewSessionDialog.value = false
         _showResumeSessionDialog.value = false
         _savedStatusMessage.value = "Sesi baru dimulai: ${session.name}"
@@ -133,15 +120,11 @@ class CameraViewModel(
         val session = sessionManager.activeSession.value
         if (session != null) {
             sessionManager.resumeSession(session)
-            _currentSampleId.value = session.lastSampleId
             _savedStatusMessage.value = "Melanjutkan sesi: ${session.name}"
         }
         _showResumeSessionDialog.value = false
     }
 
-    /**
-     * [FITUR BARU] Sesi Selesai -> Auto-Zip & Share WhatsApp Intent
-     */
     fun finishAndExportSession(context: Context) {
         val session = activeSession.value ?: return
         _isZipping.value = true
@@ -153,7 +136,7 @@ class CameraViewModel(
             zipResult.onSuccess { zipFile ->
                 sessionManager.finishActiveSession()
                 _showResumeSessionDialog.value = false
-                _savedStatusMessage.value = "Sesi Selesai. Mengeksplorasi Zip..."
+                _savedStatusMessage.value = "Sesi Selesai. Mengekspor Zip..."
                 sessionManager.shareZipFile(context, zipFile)
             }.onFailure { err ->
                 _savedStatusMessage.value = "Gagal membuat Zip: ${err.message}"
@@ -161,8 +144,11 @@ class CameraViewModel(
         }
     }
 
+    /**
+     * Simpan sementara ke folder 'temp' di dalam folder sesi.
+     */
     fun createTempFile(): File {
-        return fileManager.createTempCaptureFile()
+        return fileManager.createTempCaptureFile(sessionManager.activeSession.value)
     }
 
     fun onPhotoCaptured(file: File) {
@@ -185,27 +171,25 @@ class CameraViewModel(
         _showQualityDialog.value = false
     }
 
-    fun getEstimatedFileName(category: QualityCategory, sampleId: String): String {
+    fun getEstimatedFileName(category: QualityCategory): String {
         val preset = activePreset.value
-        val session = activeSession.value
-        val nextIdx = fileManager.getNextImageIndex(category, sampleId, session)
-        return fileManager.generateFileName(preset.namingTemplate, category, sampleId, nextIdx)
+        val session = activeSession.value ?: return "Preview.jpg"
+        val nextSampleIdx = session.getNextSampleIndex()
+        val nextImageIdx = session.getNextImageIndex(category)
+        return fileManager.generateFileName(preset.namingTemplate, category, nextSampleIdx, nextImageIdx)
     }
 
     /**
-     * [BUG FIX & SESSION PERSISTENCE]
-     * Menyimpan foto berlabel kualitas ke direktori sesi aktif secara asynchronous & terverifikasi.
-     * Mengelompokkan dalam sub-folder (/Sesi_01/Baik/) dan mencatat progres sesi.
+     * [AUTO-INCREMENT ID] & [PEMINDAHAN FILE]
      */
     fun saveLabeledPhoto(
         category: QualityCategory,
-        sampleId: String,
         onSuccess: (File) -> Unit,
         onError: (Throwable) -> Unit
     ) {
         val tempFile = _capturedPhotoFile.value
         if (tempFile == null || !tempFile.exists()) {
-            onError(IllegalStateException("File foto temporary tidak ditemukan"))
+            onError(IllegalStateException("File temporary tidak ditemukan"))
             return
         }
 
@@ -216,19 +200,18 @@ class CameraViewModel(
             val result = fileManager.saveSamplePhoto(
                 tempFile = tempFile,
                 category = category,
-                sampleId = sampleId,
-                template = preset.namingTemplate,
-                session = session
+                session = session,
+                template = preset.namingTemplate
             )
 
             result.onSuccess { savedFile ->
-                sessionManager.recordPhotoSaved(sampleId)
-                _currentSampleId.value = sampleId
+                // Update counter di database/prefs secara instan
+                sessionManager.recordPhotoSaved(category)
+                
                 _capturedPhotoFile.value = null
                 _showQualityDialog.value = false
 
-                val sessionDirName = session.name
-                _savedStatusMessage.value = "Foto tersimpan di: /$sessionDirName/${category.folderName}/${savedFile.name}"
+                _savedStatusMessage.value = "Berhasil disimpan: ${savedFile.name}"
                 onSuccess(savedFile)
             }.onFailure { error ->
                 onError(error)

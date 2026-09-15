@@ -15,14 +15,9 @@ import java.util.Locale
 
 /**
  * Pengelola penyimpanan dataset foto sampel penelitian.
- * Bertanggung jawab membuat folder per kategori, penamaan file terstruktur,
- * serta memastikan penulisan file bersifat asynchronous dan benar-benar resolved.
  */
 class DatasetFileManager(private val context: Context) {
 
-    /**
-     * Mendapatkan direktori dasar dataset.
-     */
     fun getDatasetBaseDir(): File {
         val publicDocs = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         val baseDir = File(publicDocs, "ResearchDataset")
@@ -52,8 +47,7 @@ class DatasetFileManager(private val context: Context) {
     }
 
     /**
-     * Mendapatkan direktori kategori untuk sesi aktif (atau direktori dasar jika tanpa sesi).
-     * Contoh: .../ResearchDataset/Sesi_01/Baik/
+     * Mendapatkan direktori kategori untuk sesi aktif.
      */
     fun getCategoryDir(category: QualityCategory, session: SessionModel? = null): File {
         val parentDir = if (session != null) {
@@ -65,102 +59,75 @@ class DatasetFileManager(private val context: Context) {
         }
 
         val categoryDir = File(parentDir, category.folderName)
-        if (!categoryDir.exists()) {
-            categoryDir.mkdirs()
-        }
+        if (!categoryDir.exists()) categoryDir.mkdirs()
         return categoryDir
     }
 
     /**
-     * Menghasilkan nama file berdasarkan format template preset.
-     *
-     * Format Default: [kategoriKualitas]_[tanggalAmbil]_[sampleid]_[imageid].jpg
-     * Contoh Output: Baik_20261024_S001_IMG001.jpg
+     * Menghasilkan nama file berdasarkan format template preset dengan Auto-Increment ID.
      */
     fun generateFileName(
         template: String,
         category: QualityCategory,
-        sampleId: String,
+        sampleIndex: Int,
         imageIndex: Int,
         date: Date = Date()
     ): String {
         val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
         val dateStr = dateFormat.format(date)
 
-        val cleanSampleId = if (sampleId.isBlank()) "S001" else sampleId.trim()
+        val sampleIdStr = String.format(Locale.US, "S%03d", sampleIndex)
         val imageIdStr = String.format(Locale.US, "IMG%03d", imageIndex)
 
         var fileName = template
             .replace("[kategoriKualitas]", category.displayName, ignoreCase = true)
             .replace("[tanggalAmbil]", dateStr, ignoreCase = true)
-            .replace("[sampleid]", cleanSampleId, ignoreCase = true)
+            .replace("[sampleid]", sampleIdStr, ignoreCase = true)
             .replace("[imageid]", imageIdStr, ignoreCase = true)
 
-        if (!fileName.lowercase(Locale.getDefault()).endsWith(".jpg") &&
-            !fileName.lowercase(Locale.getDefault()).endsWith(".jpeg")
-        ) {
+        if (!fileName.lowercase().endsWith(".jpg") && !fileName.lowercase().endsWith(".jpeg")) {
             fileName += ".jpg"
         }
-
         return fileName
     }
 
     /**
-     * Mendapatkan indeks nomor urut foto berikutnya untuk sampel dan kategori tertentu.
-     */
-    fun getNextImageIndex(category: QualityCategory, sampleId: String, session: SessionModel? = null): Int {
-        val folder = getCategoryDir(category, session)
-        val cleanSampleId = if (sampleId.isBlank()) "S001" else sampleId.trim()
-
-        val files = folder.listFiles { file ->
-            val name = file.name
-            name.contains("_${cleanSampleId}_", ignoreCase = true) ||
-                    name.startsWith("${cleanSampleId}_", ignoreCase = true) ||
-                    name.contains("_${cleanSampleId}.", ignoreCase = true)
-        } ?: return 1
-
-        return files.size + 1
-    }
-
-    /**
-     * [BUG FIX] Async File Handling:
-     * Menyimpan file foto dari cache sementara ke direktori permanen kategori dataset.
-     * Memastikan penulisan stream completely flushed, closed, & verified sebelum resolved.
+     * [PEMINDAHAN FILE] Pindahkan foto dari temp ke folder lokasi kategori.
      */
     suspend fun saveSamplePhoto(
         tempFile: File,
         category: QualityCategory,
-        sampleId: String,
-        template: String,
-        session: SessionModel? = null
+        session: SessionModel,
+        template: String
     ): Result<File> = withContext(Dispatchers.IO) {
         runCatching {
-            require(tempFile.exists() && tempFile.length() > 0) { "File foto temporary tidak valid atau kosong" }
+            if (!tempFile.exists() || tempFile.length() == 0L) {
+                throw IllegalStateException("File temporary tidak valid.")
+            }
 
             val targetDir = getCategoryDir(category, session)
-            val nextIndex = getNextImageIndex(category, sampleId, session)
-            val fileName = generateFileName(template, category, sampleId, nextIndex)
+            val sampleIndex = session.getNextSampleIndex()
+            val imageIndex = session.getNextImageIndex(category)
+            val fileName = generateFileName(template, category, sampleIndex, imageIndex)
             val destinationFile = File(targetDir, fileName)
 
-            FileInputStream(tempFile).use { input ->
-                FileOutputStream(destinationFile).use { output ->
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    while (input.read(buffer).also { bytesRead = it } != -1) {
-                        output.write(buffer, 0, bytesRead)
+            // Pindahkan file (bukan copy)
+            val moved = tempFile.renameTo(destinationFile)
+            
+            if (!moved) {
+                // Fallback copy jika renameTo gagal (beda volume storage)
+                FileInputStream(tempFile).use { input ->
+                    FileOutputStream(destinationFile).use { output ->
+                        input.copyTo(output)
+                        output.flush()
+                        output.getFD().sync()
                     }
-                    output.flush()
                 }
+                if (tempFile.exists()) tempFile.delete()
             }
 
-            // Verifikasi fisik file terpasang dan tidak 0 bytes sebelum resolved
             if (!destinationFile.exists() || destinationFile.length() == 0L) {
-                throw IllegalStateException("Gagal memverifikasi keberadaan file hasil simpan: ${destinationFile.absolutePath}")
-            }
-
-            // Hapus file temp setelah berhasil dipindah
-            if (tempFile.exists()) {
-                tempFile.delete()
+                throw IllegalStateException("Gagal menyimpan file.")
             }
 
             destinationFile
@@ -168,10 +135,21 @@ class DatasetFileManager(private val context: Context) {
     }
 
     /**
-     * Mendapatkan file cache sementara untuk penyimpanan shutter capture.
+     * Simpan sementara ke folder 'temp' di dalam folder sesi.
      */
-    fun createTempCaptureFile(): File {
-        val cacheDir = context.cacheDir
-        return File.createTempFile("capture_preview_", ".jpg", cacheDir)
+    fun createTempCaptureFile(session: SessionModel?): File {
+        val parentDir = if (session != null) {
+            val sessionFolder = File(getDatasetBaseDir(), session.name)
+            val tempDir = File(sessionFolder, "temp")
+            if (!tempDir.exists()) tempDir.mkdirs()
+            tempDir
+        } else {
+            val globalTemp = File(getDatasetBaseDir(), "temp")
+            if (!globalTemp.exists()) globalTemp.mkdirs()
+            globalTemp
+        }
+        
+        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmssSSS", Locale.US).format(Date())
+        return File(parentDir, "TEMP_$timeStamp.jpg")
     }
 }
